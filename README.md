@@ -230,21 +230,15 @@ INTERNAL_IPS = [
 ]
 ```
 
-# <center> ✏ This is the end of initial setup ✏ </center>
-
-## <center> ****************************************************** </center>
-
-# <center> 🚀 AUTHENTICATION </center>
-
 ## 🚩 ADDING AN APP
 
 💻 Go to terminal 👇
 
 ```bash
-python manage.py startapp users
+python manage.py startapp blog
 ```
 
-✔ Go to "settings.py" and add 'users' app to "INSTALLED_APPS"
+✔ Go to "settings.py" and add 'blog' app to "INSTALLED_APPS"
 
 ## 💻 INSTALL [DJ-REST-AUTH](https://dj-rest-auth.readthedocs.io/en/latest/)
 
@@ -272,7 +266,7 @@ pip freeze > requirements.txt
 path('users/', include('users.urls'))
 ```
 
-## ✔ Create "api" folder under "users" App. 👉 Then create "urls.py", "serializers.py" and "views.py" files under "api" folder 👇
+## ✔ Create "api" folder under "blog" App. 👉 Then create "urls.py", "serializers.py" and "views.py" files under "api" folder 👇
 
 ## 🚩 Go to "users/urls.py" and add 👇
 
@@ -289,6 +283,17 @@ urlpatterns = [
 ```bash
 python manage.py migrate
 ```
+
+## 🚩 Start Models 👇
+
+```python
+
+```
+
+
+
+
+# <center> 🚀 AUTHENTICATION </center>
 
 ## ✔ Go to "api/serializers.py" file and add 👇
 
