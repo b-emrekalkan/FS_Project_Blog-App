@@ -21,7 +21,7 @@ class BlogPost(models.Model):
     image = models.URLField(max_length=200, blank=True, default="https://robohash.org/9c681a48b0ef374675df3ca8d6b014a5?set=set4&bgset=&size=400x400")
     published_date = models.DateTimeField(auto_now_add=True, blank=True)
     last_updated_date = models.DateTimeField(auto_now=False, blank=True)
-    status = models.CharField(max_length=50, choises=STATUS)
+    status = models.CharField(max_length=50, choices=STATUS)
     #! We use slug for the fields we want to appear instead of ID 👇
     slug = models.SlugField()
 
