@@ -345,9 +345,160 @@ class Post_view(models.Model):
 python manage.py migrate
 ```
 
+## 🚩 Create "user" app and "INSTALLED_APP"
 
+## 🚩 Go to "models.py" in "user" app and add 👇
 
+```python
+from django.db import models
+from django.contrib.auth.models import AbstractUser
 
+class User(AbstractUser):
+    image = models.URLField(max_length=200, blank=True)
+    bio = models.TextField(blank=True)
+```
+
+## 🚩 Register the model in "admin.py" 👇
+
+```python
+from django.contrib import admin
+from .models import User
+
+admin.site.register(User)
+```
+
+## 🚩 Go "main/settings.py" and add 👇
+
+```python
+AUTH_USER_MODEL = 'user.User'
+```
+
+## 🚩 Create "serializers.py" file under "user" app and add 👇
+
+```python
+from rest_framework import serializers, validators
+# from django.contrib.auth.models import User
+# from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from dj_rest_auth.serializers import TokenSerializer
+
+User = get_user_model()
+class RegisterSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        required=True,
+        validators=[validators.UniqueValidator(queryset=User.objects.all())]
+    )
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[validate_password],
+        style={"input_type": "password"}
+    )
+    password1 = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[validate_password],
+        style={"input_type": "password"}
+    )
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'password',
+            'password1',
+            'image',
+            'bio'
+        )
+    def validate(self, data):
+        if data['password'] != data['password1']:
+            raise serializers.ValidationError(
+                {"password": "Password didn't match..... "}
+            )
+        return data
+    def create(self, validated_data):
+        password = validated_data.pop("password")
+        validated_data.pop('password1')
+        user = User.objects.create(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'email'
+        )
+class CustomTokenSerializer(TokenSerializer):
+    user = UserSerializer(read_only=True)
+
+    class Meta(TokenSerializer.Meta):
+        fields = (
+            'key',
+            'user'
+        )
+```
+
+## 🚩 Create "signals.py" file under "user" app and add 👇
+
+```python
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+@receiver(post_save, sender=User)
+def create_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)
+```
+
+## 🚩 Go to "views.py" and create RegisterView() 👇
+
+```python
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.authtoken.models import Token
+from .serializers import RegisterSerializer
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = RegisterSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        data = serializer.data
+        if Token.objects.filter(user=user).exists():
+            token = Token.objects.get(user=user)
+            data['token'] = token.key
+        else:
+            data['error'] = 'User dont have token. Please login'
+        headers = self.get_success_headers(serializer.data)
+        return Response(data, status=status.HTTP_201_CREATED, headers=headers)
+```
+
+## 🚩 Create "urls.py" file under "user" app and add 👇
+
+```python
+from django.urls import path, include
+from .views import RegisterView
+
+urlpatterns = [
+    path('', include('dj_rest_auth.urls')),
+    path('register/', RegisterView.as_view())
+]
+```
 
 # <center> 🚀 AUTHENTICATION </center>
 
