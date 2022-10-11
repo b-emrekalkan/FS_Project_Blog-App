@@ -1,7 +1,7 @@
 # <center> ✈ FULLSTACK-PROJECT-BLOG-APP ✈ </center>
 
 ## <center>💻 BACKEND 💻</center>
-## <center> ************************************** </center>
+
 # <center> 🚀 INITIAL SETUP </center>
 
 ```bash
@@ -108,7 +108,7 @@ pip freeze > requirements.txt
 
 ✔ Go to settings.py and add '' app to INSTALLED_APPS
 
-## 💻 Install Swagger
+## 🚩 Install Swagger
 
 🔹 Explain a [sample API reference documentation](https://shopify.dev/api)
 
@@ -183,13 +183,13 @@ python manage.py runserver
 
 ### ✔ After running the server, go to [swagger page](http://127.0.0.1:8000/swagger/) and [redoc page](http://localhost:8000/redoc/) of your project!
 
-## 💻 INSTALL DEBUG TOOLBAR 👇
+## 🚩 INSTALL DEBUG TOOLBAR 👇
 
 🔹 The Django Debug Toolbar is a configurable set of panels that display various debug information about the current request/response and when clicked, display more details about the panel’s content.
 
 📜 See the Django Debug Toolbar [documentation page](https://django-debug-toolbar.readthedocs.io/en/latest/).
 
-💻 For Installation go to terminal 👇
+## 💻 For Installation go to terminal 👇
 
 ```bash
 pip install django-debug-toolbar
@@ -263,7 +263,7 @@ pip freeze > requirements.txt
 ## 🚩 Go to "main/urls.py" and add the path 👇
 
 ```python
-path('users/', include('users.urls'))
+path('auth/', include('user.urls'))
 ```
 
 ## ✔ Create "api" folder under "blog" App. 👉 Then create "urls.py", "serializers.py" and "views.py" files under "api" folder 👇
@@ -284,7 +284,7 @@ urlpatterns = [
 python manage.py migrate
 ```
 
-## 🚩 Start Models 👇
+## 🚩 Start Models in "Blog" app 👇
 
 ```python
 from django.db import models
@@ -345,7 +345,7 @@ class Post_view(models.Model):
 python manage.py migrate
 ```
 
-## 🚩 Create "user" app and "INSTALLED_APP"
+## 🚩 Create "user" app and  add "INSTALLED_APP"
 
 ## 🚩 Go to "models.py" in "user" app and add 👇
 
@@ -377,8 +377,6 @@ AUTH_USER_MODEL = 'user.User'
 
 ```python
 from rest_framework import serializers, validators
-# from django.contrib.auth.models import User
-# from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from dj_rest_auth.serializers import TokenSerializer
@@ -443,6 +441,24 @@ class CustomTokenSerializer(TokenSerializer):
         )
 ```
 
+## 🔴 [SIGNALS](https://docs.djangoproject.com/en/4.1/topics/signals/) 👇
+
+🔹 Django include  a “signal dispatcher” which helps decoupled applications get notified when actions occur elsewhere in the framework.
+
+🔹 In   nutshell, signals allow certain senders to notify a set of receivers that some action has taken place.
+
+🔹 They’re especially useful when many pieces of code may be interested in the same events.
+
+## 🔴 Listening to signals 👉 Parameters:
+
+🔹 <b>receiver</b>: The callback function which will be connected to this signal. See Receiver functions for more information.
+
+🔹 <b>sender</b>: Specifies a particular sender to receive signals from. See Connecting to signals sent by specific senders for more information.
+
+🔹 <b>weak</b>: Django stores signal handlers as weak references by default. Thus, if your receiver is a local function, it may be garbage collected. To prevent this, pass weak=False when you call the signal’s connect() method.
+
+🔹 <b>dispatch_uid</b>: A unique identifier for a signal receiver in cases where duplicate signals may be sent. See Preventing duplicate signals for more information.
+
 ## 🚩 Create "signals.py" file under "user" app and add 👇
 
 ```python
@@ -457,6 +473,13 @@ User = get_user_model()
 def create_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
+```
+
+## 🚩 Go to "apps.py" and add this under UsersConfig() 👇
+
+```python
+def ready(self):
+    import user.signals
 ```
 
 ## 🚩 Go to "views.py" and create RegisterView() 👇
@@ -500,9 +523,7 @@ urlpatterns = [
 ]
 ```
 
-# <center> 🚀 AUTHENTICATION </center>
-
-## ✔ Go to "api/serializers.py" file and add 👇
+## ✔ Create "serializers.py" file under "User" app and add 👇
 
 ```python
 from rest_framework import serializers, validators
@@ -552,7 +573,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 ```
 
-## 🚩 Go to "api/views.py"
+## 🚩 Go to "views.py" and create RegisterView() 👇
 
 ```python
 from rest_framework import generics
@@ -564,7 +585,7 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
 ```
 
-## 🚩 Go to "api/urls.py" and add the path 👇
+## 🚩 Go to "urls.py" and add the path 👇
 
 ```python
 from users.api.views import RegisterView
@@ -572,469 +593,9 @@ from users.api.views import RegisterView
 path('register/', RegisterView.as_view()),
 ```
 
-## 🚩 Go to "settings.py" and add 👇
-
-```python
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
-    ]
-}
-```
-
-## 🔴 [SIGNALS](https://docs.djangoproject.com/en/4.1/topics/signals/) 👇
-
-🔹 Django include  a “signal dispatcher” which helps decoupled applications get notified when actions occur elsewhere in the framework.
-
-🔹 In   nutshell, signals allow certain senders to notify a set of receivers that some action has taken place.
-
-🔹 They’re especially useful when many pieces of code may be interested in the same events.
-
-## 🚩 Create "signals.py" under "api" folder and add 👇
-
-```python
-from django.contrib.auth.models import User
-from django.db.models.signals import post_save
-#! Sent before or after a model’s save() method is called. 👆
-from django.dispatch import receiver
-from rest_framework.authtoken.models import Token
-
-@receiver(post_save, sender=User)
-def create_token(sender, instance=None, created=False, **kwargs):
-    if created:
-        Token.objects.create(user=instance)
-```
-
-## 🔴 Listening to signals 👉 Parameters:
-
-🔹 <b>receiver</b>: The callback function which will be connected to this signal. See Receiver functions for more information.
-
-🔹 <b>sender</b>: Specifies a particular sender to receive signals from. See Connecting to signals sent by specific senders for more information.
-
-🔹 <b>weak</b>: Django stores signal handlers as weak references by default. Thus, if your receiver is a local function, it may be garbage collected. To prevent this, pass weak=False when you call the signal’s connect() method.
-
-🔹 <b>dispatch_uid</b>: A unique identifier for a signal receiver in cases where duplicate signals may be sent. See Preventing duplicate signals for more information.
-
-## 🚩 Go to "apps.py" and add this under UsersConfig() 👇
-
-```python
-def ready(self):
-    import users.api.signals
-```
-
-## 🚩 Go to "api/views.py" and customize RegisterView()👇
-
-```python
-from rest_framework import generics, status
-from django.contrib.auth.models import User
-from rest_framework.response import Response
-from rest_framework.authtoken.models import Token
-from .serializers import RegisterSerializer
-
-
-class RegisterView(generics.CreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = RegisterSerializer
-
-    #! When user register 👉 "username", "email","first_name","last_name" and "token" will be returned. 👇
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        data = serializer.data
-        token = Token.objects.get(user=user)
-        data["token"] = token.key
-        headers = self.get_success_headers(serializer.data)
-        return Response(data, status=status.HTTP_201_CREATED, headers=headers)
-```
-
-## 🚩 Override TokenSerializer() in api.serializers.py 👇
-
-```python
-from dj_rest_auth.serializers import TokenSerializer
-
-#! We need to override the TokenSerializer to return all user data in a single request 👇
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = {
-            'username',
-            'email'
-        }
-
-class CustomTokenSerializer(TokenSerializer):
-    user = UserSerializer(read_only=True)
-
-    class Meta(TokenSerializer.Meta):
-        fields = {
-            'key',
-            'user'
-        }
-```
-
-## 🚩 Go to "settings.py" and add 👇
-
-```python
-REST_AUTH_SERIALIZERS = {
-    'TOKEN_SERIALIZER': 'users.api.serializers.CustomTokenSerializer',
-}
-```
-
 ## <center> ****************************************************** </center>
-# <center> 🚀 LOGIC STARTING </center>
 
-## 🚩 ADDING AN APP:
 
-💻 Go to terminal 👇
-
-```bash
-python manage.py startapp stock
-```
-
-✔ Go to "settings.py" and add 'stock' app to "INSTALLED_APPS"
-
-## 🚩 Go to main.urls.py and add "stock/" path 👇
-
-```python
-path('stock/', include('stock.api.urls')),
-```
-
-## Create api folder under stock app create files...............
-
-## 🚩 Go to "stock/models.py" and create Models 👇
-
-```python
-from django.db import models
-from django.contrib.auth.models import User
-
-class Category(models.Model):
-    name = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.name
-
-class Brand(models.Model):
-    name = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.name
-
-class Firm(models.Model):
-    name = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.name
-
-class Product(models.Model):
-    name = models.CharField(max_length=50)
-    category = models.ForeignKey(Category, related_name="product_category", on_delete=models.CASCADE)
-    brand = models.ForeignKey(Brand, related_name="product_brand", on_delete=models.CASCADE)
-    stock = models.IntegerField()
-
-    def __str__(self):
-        return self.name
-
-class Transaction(models.Model):
-    TRANSACTIONS = (
-        ("in", "IN"),
-        ("out", "OUT")
-    )
-    user = models.ForeignKey(User, related_name="transaction_owner", on_delete=models.CASCADE)
-    firm = models.ForeignKey(Firm, related_name="transaction_firm", on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, related_name="transaction_product", on_delete=models.CASCADE)
-    transaction = models.CharField(max_length=50, choices=TRANSACTIONS)
-    quantity = models.IntegerField()
-    price = models.DecimalField(max_digits=20, decimal_places=2)
-    price_total = models.DecimalField(max_digits=20, decimal_places=2, blank=True)
-```
-
-## 🚩 Register the models in "stock/admin.py" 👇
-
-```python
-from django.contrib import admin
-from .models import Category, Brand, Firm, Product, Transaction
-
-admin.site.register(Category)
-admin.site.register(Brand)
-admin.site.register(Firm)
-admin.site.register(Product)
-admin.site.register(Transaction)
-```
-
-## 💻 Go to terminal for migration 👇
-
-```bash
-python manage.py makemigrations
-python manage.py migrate
-```
-
-## 🚩 Create "serializers.py" file under "stock/api" folder 👇
-
-```python
-from rest_framework import serializers
-from stock.models import Category, Brand, Firm, Product, Transaction
-
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = "__all__"
-
-
-class BrandSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Brand
-        fields = "__all__"
-
-
-class FirmSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Firm
-        fields = "__all__"
-
-
-class ProductSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Product
-        fields = "__all__"
-
-
-class TransactionSerializer(serializers.ModelSerializer):
-    product_id = serializers.IntegerField(write_only=True)
-    user = serializers.StringRelatedField(read_only=True)
-    user_id = serializers.IntegerField(write_only=True)
-    firm = serializers.StringRelatedField(read_only=True)
-    firm_id = serializers.IntegerField(write_only=True)
-    product = ProductSerializer(many=True)
-    class Meta:
-        model = Transaction
-        fields = "__all__"
-        read_only_fields = ("price_total",)
-```
-
-## 🚩 Time to add views in "stock/api/views.py" 👇
-
-```python
-from rest_framework import viewsets
-from rest_framework import permissions
-from stock.models import Category, Brand, Firm, Product, Transaction
-from .serializers import CategorySerializer, FirmSerializer, BrandSerializer, TransactionSerializer, ProductSerializer
-
-#! Thanks to the modelviewset, we can do all the operations 👇
-#!  GET, POST, PUT, DELETE, PATCH
-
-class CategoryView(viewsets.ModelViewSet):
-    queryset = Category.objects.all()
-    serializer_class= CategorySerializer
-
-class BrandView(viewsets.ModelViewSet):
-    queryset = Brand.objects.all()
-    serializer_class= BrandSerializer
-
-class FirmView(viewsets.ModelViewSet):
-    queryset = Firm.objects.all()
-    serializer_class= FirmSerializer
-
-class ProductView(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
-    serializer_class= ProductSerializer
-
-class TransactionView(viewsets.ModelViewSet):
-    queryset = Transaction.objects.all()
-    serializer_class= TransactionSerializer
-```
-
-## 🚩 Create "urls.py" file under "stock/api" folder 👇
-
-```python
-from rest_framework import routers
-from .views import BrandView, CategoryView, FirmView, ProductView, TransactionStockView
-
-
-router = routers.DefaultRouter()
-router.register('transaction', TransactionStockView)
-router.register('category', CategoryView)
-router.register('brand', BrandView)
-router.register('firm', FirmView)
-router.register('product', ProductView)
-
-urlpatterns = [
-
-]
-
-urlpatterns += router.urls
-```
-
-## 🚩 Go to stock/api/serializers.py and override "create" and "validate" methods in TransactionSerializer() 👇
-
-```python
-     def create(self, validated_data):
-        quantity = validated_data['quantity']
-        price = validated_data['price']
-        validated_data['price_total'] = quantity * price
-        transaction = Transaction.objects.create(**validated_data)
-        transaction.save()
-        return transaction
-
-    def validate(self, data):
-        transaction = data['transaction']
-        product_id = data['product_id']
-        quantity = data['quantity']
-        stock = Product.objects.filter(id=product_id).values()
-
-        if transaction == 'in':
-            new_stock = stock[0]['stock'] + quantity
-        elif quantity <= stock[0]['stock']:
-            new_stock = stock[0]['stock'] - quantity
-        else:
-            new_stock = stock[0]['stock']
-            raise serializers.ValidationError(
-                {"quantity": "Product stock quantity is not enough..."}
-            )
-
-        Product.objects.filter(id=product_id).update(stock=new_stock)
-
-        return data
-```
-
-## 🚩 We will use "IsAdminUser" so that only the authorized user can create a flight. For that create "permissions.py" file under "flight" App 👇
-
-```python
-from rest_framework import permissions
-
-class IsStafforReadOnly(permissions.IsAdminUser):
-    def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        return bool(request.user and request.user.is_staff)
-```
-
-## 🚩 Go to "views.py" and add this permission 👇
-
-```python
-from .permissions import IsStafforReadOnly
-
-class FlightView(viewsets.ModelViewSet):
-
-    permission_classes = (IsStafforReadOnly,)
-```
-
-## 🚩 Go to "serializers.py" and add ReservationSerializer() 👇
-
-```python
-class ReservationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Reservation
-        fields = (
-            "id",
-            "flight",  # GET
-            "flight_id",  # POST
-            "user",  # GET
-            "user_id",  # POST
-            "passenger"
-        )
-```
-
-## 🚩 Go to "views.py" and add ReservationView() 👇
-
-```python
-from .serializers import ReservationSerializer
-class ReservationView(viewsets.ModelViewSet):
-    queryset = Reservation.objects.all()
-    serializer_class = ReservationSerializer
-```
-
-## 🚩 Go to "flight/urls.py" and add the path 👇
-
-```python
-from .views import ReservationView
-router.register('resv', ReservationView)
-```
-
-## 🚩 Go to "serializers.py" and add PassengerSerializer() 👇
-
-```python
-class PassengerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Passenger
-        fields = "__all__"
-```
-
-## 🚩 In ReservationSerializer() add 👇
-
-```python
-passenger = PassengerSerializer(many = True, required=True)
-flight = serializers.StringRelatedField()
-flight_id = serializers.IntegerField(write_only=True)
-#! write_only 👉 It will only appear when creating
-user = serializers.StringRelatedField()
-user_id = serializers.IntegerField(write_only=True, required=False)
-```
-
-## 🚩 We need to extract passenger information from the data, when the reservation is created. For that add to "serializers.py" 👇
-
-```python
-def create(self, validated_data):
-        passenger_data = validated_data.pop('passenger')
-        validated_data['user_id'] = self.context['request'].user.id
-        # We updated the user information inside data 👆
-        reservation = Reservation.objects.create(**validated_data)
-        for passenger in passenger_data:
-            pas = Passenger.objects.create(**passenger)
-            reservation.passenger.add(pas)
-        reservation.save()
-        return reservation
-```
-
-## 🚩 All reservation information can only be seen by the staff user <i>(Users will only see their own reservation)</i>. For that override "get_queryset" method in "ReservationView()" in "views.py" 👇
-
-```python
-  #! Overriding "get_queryset" Method 👇
- def get_queryset(self):
-        queryset = super().get_queryset() # 👉 Reservation.objects.all()
-        if self.request.user.is_staff:
-            return queryset
-        return queryset.filter(user = self.request.user)
-```
-
-## 🚩 Let the staff members see the reservation information of that flight for each flight. For this, we will add reservations to "FlightView()" by writing a separate serializer and say show it to staff 👇
-
-```python
-class StaffFlightSerializer(serializers.ModelSerializer):
-    reservation = ReservationSerializer(many=True, read_only=True)
-    class Meta:
-        model = Flight
-        fields = "__all__"
-```
-
-## 🚩 Go to "views.py" and override "get_serializer_class" in "FlightView()" 👇
-
-```python
-from .serializers import StaffFlightSerializer
-def get_serializer_class(self):
-        serializer = super().get_serializer_class()
-        if self.request.user.is_staff:
-            return StaffFlightSerializer
-        return serializer
-```
-
-## 🚩 We will override the "get_query_set" method in "FlightView()" so that normal users can't see past flights 👇
-
-```python
-from datetime import datetime, date
-def get_queryset(self):
-        now = datetime.now()
-        current_time = now.strftime('%H:%M:%S')
-        today = date.today()
-
-        if self.request.user.is_staff:
-            return super().get_queryset()
-        else:
-            queryset = Flight.objects.filter(date_of_departure__gt = today)
-            if Flight.objects.filter(date_of_departure = today):
-                today_qs = Flight.objects.filter(date_of_departure = today).filter(etd__gt=current_time)
-            queryset = queryset.union(today_qs)
-            return queryset
-```
 
 ## 📢 Do not forget to check the endpoints you wrote in [Postman](https://www.postman.com/).
 
