@@ -181,6 +181,12 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+## 🔴 If you have this problem 👉 ( return Database.Cursor.execute(self, query, params) sqlite3.OperationalError:) when you create "superuser" you should write this command 👇
+
+```bash
+python manage.py migrate --run-syncdb
+```
+
 ### ✔ After running the server, go to [swagger page](http://127.0.0.1:8000/swagger/) and [redoc page](http://localhost:8000/redoc/) of your project!
 
 ## 🚩 INSTALL DEBUG TOOLBAR 👇
