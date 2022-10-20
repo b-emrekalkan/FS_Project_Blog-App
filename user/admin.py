@@ -13,4 +13,3 @@ class UserUserAdmin(UserAdmin):
 
 admin.site.unregister(User)
 admin.site.register(User, UserUserAdmin)
-# admin.site.register(User)

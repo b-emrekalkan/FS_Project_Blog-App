@@ -1,11 +1,11 @@
 from rest_framework import generics, status
 from django.conf import settings
-from user.serializers import RegisterSerializer
+from user.api.serializers import RegisterSerializer
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from user.models import User
 from django.contrib.auth import get_user_model
-# User = settings.AUTH_USER_MODEL
+
 User = get_user_model()
 
 

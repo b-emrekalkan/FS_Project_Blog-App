@@ -1,11 +1,5 @@
-from rest_framework.pagination import CursorPagination, LimitOffsetPagination
+from rest_framework.pagination import LimitOffsetPagination
 
-
-class CursorSetPagination(CursorPagination):
-    page_size = 6
-    page_size_query_param = 'page_size'
-    ordering = 'id'  # '-created' is default
-
-
+#! For 6 posts to appear on each page 👇
 class CustomLimitOffsetPagination(LimitOffsetPagination):
     default_limit = 6

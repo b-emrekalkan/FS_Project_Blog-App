@@ -583,6 +583,19 @@ from .serializers import RegisterSerializer
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        data = serializer.data
+        if Token.objects.filter(user=user):
+            token = Token.objects.get(user=user)
+            data['token'] = token.key
+        else:
+            data['error'] = 'User does not have token . Try again ...'
+        headers = self.get_success_headers(serializer.data)
+        return Response(data, status=status.HTTP_201_CREATED, headers=headers)
 ```
 
 ## 🚩 Go to "urls.py" and add the path 👇
@@ -592,6 +605,36 @@ from users.api.views import RegisterView
 
 path('register/', RegisterView.as_view()),
 ```
+
+## 🚩 Go to "serializers.py" and add UpdateUserSerializer👇
+
+## 🚩 Go to views.py UpdateUserView
+
+## 👇 Go to "urls.py" and add the path 👇
+
+## 🚩 Create "api" folder under "blog" app and add the "views, serializers, urls" files 
+
+## 🚩 Go to "models.py" under blog app 👇
+
+## 🚩 Register models in admin.py 👇
+
+## 🚩 Create "signals.py" and "utils.py" under "api" folder and add 👇
+
+## 🚩 Customize the BlogConfig() in "apps.py" in blog app 👇
+
+## 🚩 Go to "api/serializers.py" under blog app 👇
+
+## 🚩 Go to "api/views.py" under blog app 👇
+
+## 🚩 Create "permissions.py"under "api" folder and add 👇
+
+## 🚩 Create "pagination.py"under "api" folder and add 👇
+
+## 🚩 Go to "urls.py" and add the path 👇
+
+## 💻 Install "cors-headers" for connecting with Frontend 👇
+
+
 
 ## <center> ****************************************************** </center>
 
