@@ -1,8 +1,21 @@
 from rest_framework import serializers
 from blog.models import BlogPost, Category, Comment, Like, Post_view
+from users.api.serializers import UserSerializer
 from django.contrib.auth import get_user_model
-
+# User = settings.AUTH_USER_MODEL
 User = get_user_model()
+
+# class AllUserSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model  = User
+#         fields = (
+#             "username",
+#             "first_name",
+#             "last_name",
+#             "profile_pic",
+#             "biography"
+#         )
+
 
 class CategorySerializer(serializers.ModelSerializer):
 
@@ -15,15 +28,25 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
-    user_id = serializers.IntegerField()
-    post = serializers.StringRelatedField()
-    post_id = serializers.IntegerField()
+    # user = serializers.StringRelatedField(read_only=True)
+    # user_id = serializers.IntegerField()
+    # post = serializers.StringRelatedField()
+    # post_id = serializers.IntegerField()
 
+    # class Meta:
+    #     model = Comment
+    #     fields = "__all__"
+
+#! added to indicate who commented
+    user = serializers.StringRelatedField(read_only=True)
     class Meta:
         model = Comment
-        fields = "__all__"
-
+        fields = (
+            "id",
+            "content",
+            "time_stamp",
+            "user",
+        )
 
 class LikeSerializer(serializers.ModelSerializer):
     # like_user = AllUserSerializer(many=True, read_only=True)
@@ -46,6 +69,8 @@ class BlogPostSerializer(serializers.ModelSerializer):
     like_post = LikeSerializer(many=True, read_only=True)
     # category = serializers.StringRelatedField()
     # category_id = serializers.IntegerField()
+    author = serializers.StringRelatedField()
+    author_id = serializers.IntegerField()
     like_count = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
     post_view_count = serializers.SerializerMethodField()
@@ -56,6 +81,8 @@ class BlogPostSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "author",
+            "author_id",
+            # "category_id",
             "category",
             "content",
             "image",
@@ -67,13 +94,14 @@ class BlogPostSerializer(serializers.ModelSerializer):
             "comment_count",
             "post_view_count",
             "comment_post",
-            "like_post"
+            "like_post",
         )
         read_only_fields = (
             "published_date",
             "updated_date",
+            "slug",
             "author",
-            "slug"
+            "author_id"
         )
 
     def get_like_count(self, obj):
